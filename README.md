@@ -4,7 +4,7 @@ A Node.js module that verifies whether an email address is **valid**, **invalid*
 
 ---
 
-## Quick Start (for the Checker)
+## Quick Start 
 
 ```bash
 # 1. Install dependencies
@@ -20,7 +20,7 @@ verifyEmail('user@gmial.com').then(console.log);
 "
 ```
 
-That's it. No environment variables, no database, no external services needed to run the tests — all network calls are mocked.
+
 
 ---
 
@@ -65,7 +65,7 @@ Each step can short-circuit the pipeline and return a result immediately — so 
 │   └── typoService.js            # Compares domain against common providers (edit distance ≤ 2)
 ├── validators/
 │   └── emailSyntaxValidator.js   # Format checks before any network calls
-├── __tests__/
+├── tests/
 │   ├── verifyEmail.test.js       # Integration tests for the full pipeline
 │   ├── emailSyntaxValidator.test.js
 │   └── typoService.test.js
@@ -91,34 +91,16 @@ npm test
 
 ### What to expect
 
-All 26 tests should pass. You'll see output grouped by file:
+All 29 tests should pass. You'll see output grouped by file:
 
 ```
-PASS __tests__/emailSyntaxValidator.test.js
-PASS __tests__/typoService.test.js
-PASS __tests__/verifyEmail.test.js
+PASS tests/emailSyntaxValidator.test.js
+PASS tests/typoService.test.js
+PASS tests/verifyEmail.test.js
 ```
 
-### Run a single test file
 
-```bash
-npx jest __tests__/verifyEmail.test.js
-npx jest __tests__/emailSyntaxValidator.test.js
-npx jest __tests__/typoService.test.js
 ```
-
-### Run with coverage
-
-```bash
-npx jest --coverage
-```
-
-### Note on network calls
-
-The tests do **not** make real network requests. `resolveMx` and `smtpProbe` are injected as mock functions, so the tests run fully offline and deterministically.
-
----
-
 ## Response Format
 
 Every call returns a consistent JSON object:

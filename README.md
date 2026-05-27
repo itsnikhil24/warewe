@@ -4,7 +4,7 @@ A Node.js module that verifies whether an email address is **valid**, **invalid*
 
 ---
 
-## Quick Start 
+## Quick Start
 
 ```bash
 # 1. Install dependencies
@@ -20,7 +20,59 @@ verifyEmail('user@gmial.com').then(console.log);
 "
 ```
 
+---
 
+## Try the Live API
+
+The module is hosted and accessible via a REST API. You can test it directly without any setup.
+
+**Base URL:** `https://YOUR_DEPLOYED_URL`
+
+---
+
+### Option 1 — Browser (simplest)
+
+Just paste any of these URLs into your browser:
+
+```
+https://YOUR_DEPLOYED_URL/verify?email=user@gmail.com
+https://YOUR_DEPLOYED_URL/verify?email=user@gmial.com
+https://YOUR_DEPLOYED_URL/verify?email=notanemail
+https://YOUR_DEPLOYED_URL/verify?email=user@fakexyz999.com
+```
+
+---
+
+### Option 2 — curl (terminal)
+
+```bash
+# Valid domain — triggers DNS + SMTP probe
+curl "https://YOUR_DEPLOYED_URL/verify?email=user@example.com"
+
+# Typo detection — returns didyoumean suggestion instantly
+curl "https://YOUR_DEPLOYED_URL/verify?email=user@gmial.com"
+
+# Bad syntax — rejected before any network call
+curl "https://YOUR_DEPLOYED_URL/verify?email=notanemail"
+
+# POST request with JSON body
+curl -X POST https://YOUR_DEPLOYED_URL/verify \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@gmail.com"}'
+```
+
+---
+
+### What each test case demonstrates
+
+| Email to test | What it shows |
+|---|---|
+| `user@gmial.com` | Typo detected → `didyoumean: user@gmail.com` |
+| `user@gmail.com` | Known provider → `smtp_not_supported` (fast) |
+| `notanemail` | Syntax rejection → `missing_at_symbol` |
+| `us..er@example.com` | Syntax rejection → `invalid_local_part` |
+| `user@fakexyz999.com` | DNS failure → `dns_error` or `no_mx_records` |
+| `user@@example.com` | Syntax rejection → `multiple_at_symbols` |
 
 ---
 
@@ -99,8 +151,8 @@ PASS tests/typoService.test.js
 PASS tests/verifyEmail.test.js
 ```
 
+---
 
-```
 ## Response Format
 
 Every call returns a consistent JSON object:
@@ -141,28 +193,29 @@ When a typo is detected, a `didyoumean` field is added:
 
 ### All Subresults
 
-| Subresult                | Triggered by                                        |
-|--------------------------|-----------------------------------------------------|
-| `mailbox_exists`         | SMTP 250 on RCPT TO                                 |
-| `mailbox_does_not_exist` | SMTP 550–553 on RCPT TO or MAIL FROM                |
-| `typo_detected`          | Domain edit-distance ≤ 2 from a known provider      |
-| `invalid_type`           | Input is not a string (`null`, `undefined`, etc.)   |
-| `empty_string`           | Input is empty after trimming                       |
-| `missing_at_symbol`      | No `@` in the email                                 |
-| `multiple_at_symbols`    | More than one `@`                                   |
-| `invalid_local_part`     | Leading/trailing dot or `..` in the local part      |
-| `invalid_domain_part`    | Leading/trailing dot or `..` in the domain          |
-| `email_too_long`         | Exceeds 254 characters (RFC 5321)                   |
-| `regex_mismatch`         | Fails the final format regex                        |
-| `missing_local_or_domain`| Nothing before or after `@`                         |
-| `dns_error`              | MX lookup threw an error                            |
-| `no_mx_records`          | Domain exists but has no MX records                 |
-| `greylisted`             | SMTP 450 response (try again later)                 |
-| `smtp_temporary_error`   | SMTP 421/451/452 response                           |
-| `smtp_unexpected_response` | Unrecognised SMTP response code                   |
-| `connection_timeout`     | Socket timed out before completing the handshake    |
-| `connection_error`       | Could not connect to the MX host                    |
-| `connection_closed`      | Server closed the connection before finishing       |
+| Subresult                  | Triggered by                                        |
+|----------------------------|-----------------------------------------------------|
+| `mailbox_exists`           | SMTP 250 on RCPT TO                                 |
+| `mailbox_does_not_exist`   | SMTP 550–553 on RCPT TO or MAIL FROM                |
+| `typo_detected`            | Domain edit-distance ≤ 2 from a known provider      |
+| `invalid_type`             | Input is not a string (`null`, `undefined`, etc.)   |
+| `empty_string`             | Input is empty after trimming                       |
+| `missing_at_symbol`        | No `@` in the email                                 |
+| `multiple_at_symbols`      | More than one `@`                                   |
+| `invalid_local_part`       | Leading/trailing dot or `..` in the local part      |
+| `invalid_domain_part`      | Leading/trailing dot or `..` in the domain          |
+| `email_too_long`           | Exceeds 254 characters (RFC 5321)                   |
+| `regex_mismatch`           | Fails the final format regex                        |
+| `missing_local_or_domain`  | Nothing before or after `@`                         |
+| `dns_error`                | MX lookup threw an error                            |
+| `no_mx_records`            | Domain exists but has no MX records                 |
+| `greylisted`               | SMTP 450 response (try again later)                 |
+| `smtp_temporary_error`     | SMTP 421/451/452 response                           |
+| `smtp_unexpected_response` | Unrecognised SMTP response code                     |
+| `connection_timeout`       | Socket timed out before completing the handshake    |
+| `connection_error`         | Could not connect to the MX host                    |
+| `connection_closed`        | Server closed the connection before finishing       |
+| `smtp_not_supported`       | Domain blocks SMTP probing (Gmail, Outlook, etc.)   |
 
 ---
 
@@ -189,14 +242,3 @@ When a typo is detected, a `didyoumean` field is added:
 - MX records sorted by priority before probing
 - Falls back to second MX when the first one fails
 
----
-
-## Design Decisions
-
-**Dependency injection for testability** — `verifyEmail` accepts optional `resolveMx` and `smtpProbe` overrides, making it easy to test every code path without real network calls.
-
-**Short-circuit pipeline** — checks are ordered cheapest-first (syntax → typo → DNS → SMTP), so the module never does unnecessary work.
-
-**MX fallback** — if the highest-priority MX returns `unknown`, the module tries the next one. It only stops early on definitive `valid` or `invalid` results.
-
-**Levenshtein threshold of 2** — catches single-character transpositions and omissions (`gmial`, `yahooo`, `outlok`) without producing false suggestions for unrelated domains.

@@ -7,6 +7,6 @@ module.exports = {
 
   COMMON_EMAIL_DOMAINS: ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'],
 
-  SMTP_TIMEOUT: 8000,
+  SMTP_TIMEOUT: 3000,
   MAX_EMAIL_LENGTH: 254,
 };

@@ -26,7 +26,7 @@ verifyEmail('user@gmial.com').then(console.log);
 
 The module is hosted and accessible via a REST API. You can test it directly without any setup.
 
-**Base URL:** `https://YOUR_DEPLOYED_URL`
+**Base URL:** `https://warewe.onrender.com`
 
 ---
 
@@ -35,10 +35,10 @@ The module is hosted and accessible via a REST API. You can test it directly wit
 Just paste any of these URLs into your browser:
 
 ```
-https://YOUR_DEPLOYED_URL/verify?email=user@gmail.com
-https://YOUR_DEPLOYED_URL/verify?email=user@gmial.com
-https://YOUR_DEPLOYED_URL/verify?email=notanemail
-https://YOUR_DEPLOYED_URL/verify?email=user@fakexyz999.com
+https://warewe.onrender.com/verify?email=user@gmail.com
+https://warewe.onrender.com/verify?email=user@gmial.com
+https://warewe.onrender.com/verify?email=notanemail
+https://warewe.onrender.com/verify?email=user@fakexyz999.com
 ```
 
 ---
@@ -47,16 +47,16 @@ https://YOUR_DEPLOYED_URL/verify?email=user@fakexyz999.com
 
 ```bash
 # Valid domain — triggers DNS + SMTP probe
-curl "https://YOUR_DEPLOYED_URL/verify?email=user@example.com"
+curl "https://warewe.onrender.com/verify?email=user@example.com"
 
 # Typo detection — returns didyoumean suggestion instantly
-curl "https://YOUR_DEPLOYED_URL/verify?email=user@gmial.com"
+curl "https://warewe.onrender.com/verify?email=user@gmial.com"
 
 # Bad syntax — rejected before any network call
-curl "https://YOUR_DEPLOYED_URL/verify?email=notanemail"
+curl "https://warewe.onrender.com/verify?email=notanemail"
 
 # POST request with JSON body
-curl -X POST https://YOUR_DEPLOYED_URL/verify \
+curl -X POST https://warewe.onrender.com/verify \
   -H "Content-Type: application/json" \
   -d '{"email": "user@gmail.com"}'
 ```
